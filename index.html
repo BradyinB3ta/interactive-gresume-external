@@ -810,29 +810,38 @@
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
                 try {
+                    console.log("Sending request to Gemini API...");
                     const response = await fetch(apiUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
+                    
+                    console.log("Received response status:", response.status, response.statusText);
                     const result = await response.json();
+                    console.log("Received response body:", result);
                     
                     // Remove typing indicator
                     chatMessages.lastChild.remove(); 
 
-                    if (result.candidates && result.candidates.length > 0 &&
-                        result.candidates[0].content && result.candidates[0].content.parts &&
-                        result.candidates[0].content.parts.length > 0) {
-                        const aiResponse = result.candidates[0].content.parts[0].text;
-                        addMessage(aiResponse, 'ai');
+                    if (response.ok) { // Check if response status is 2xx
+                        if (result.candidates && result.candidates.length > 0 &&
+                            result.candidates[0].content && result.candidates[0].content.parts &&
+                            result.candidates[0].content.parts.length > 0) {
+                            const aiResponse = result.candidates[0].content.parts[0].text;
+                            addMessage(aiResponse, 'ai');
+                        } else {
+                            addMessage("I apologize, I couldn't generate a response based on the provided data. The AI response structure was unexpected.", 'ai');
+                            console.error("Gemini API response structure unexpected or content missing:", result);
+                        }
                     } else {
-                        addMessage("I apologize, I couldn't generate a response based on the provided data. Please try rephrasing your question.", 'ai');
-                        console.error("Gemini API response structure unexpected or content missing:", result);
+                        addMessage(`I'm sorry, there was an issue connecting to the AI. Status: ${response.status}. Please try again later.`, 'ai');
+                        console.error("Gemini API error response:", result);
                     }
                 } catch (error) {
                     // Remove typing indicator
                     chatMessages.lastChild.remove(); 
-                    addMessage("I'm sorry, I encountered an error. Please try again later.", 'ai');
+                    addMessage("I'm sorry, I encountered a network error. Please check your connection and try again.", 'ai');
                     console.error("Error calling Gemini API:", error);
                 }
             }
@@ -869,23 +878,33 @@
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
                 try {
+                    console.log("Sending fit statement request to Gemini API...");
                     const response = await fetch(apiUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
+                    
+                    console.log("Received fit statement response status:", response.status, response.statusText);
                     const result = await response.json();
+                    console.log("Received fit statement response body:", result);
 
-                    if (result.candidates && result.candidates.length > 0 &&
-                        result.candidates[0].content && result.candidates[0].content.parts &&
-                        result.candidates[0].content.parts.length > 0) {
-                        const aiResponse = result.candidates[0].content.parts[0].text;
-                        fitResponseContainer.textContent = aiResponse;
-                        fitResponseContainer.classList.remove('hidden');
+                    if (response.ok) {
+                        if (result.candidates && result.candidates.length > 0 &&
+                            result.candidates[0].content && result.candidates[0].content.parts &&
+                            result.candidates[0].content.parts.length > 0) {
+                            const aiResponse = result.candidates[0].content.parts[0].text;
+                            fitResponseContainer.textContent = aiResponse;
+                            fitResponseContainer.classList.remove('hidden');
+                        } else {
+                            fitResponseContainer.textContent = "Could not generate a fit statement. AI response structure unexpected.";
+                            fitResponseContainer.classList.remove('hidden');
+                            console.error("Gemini API fit statement response structure unexpected or content missing:", result);
+                        }
                     } else {
-                        fitResponseContainer.textContent = "Could not generate a fit statement. Please try again.";
+                        fitResponseContainer.textContent = `Error generating statement. Status: ${response.status}.`;
                         fitResponseContainer.classList.remove('hidden');
-                        console.error("Gemini API response structure unexpected or content missing:", result);
+                        console.error("Gemini API fit statement error response:", result);
                     }
                 } catch (error) {
                     fitResponseContainer.textContent = "An error occurred while generating the statement. Please try again.";
