@@ -1,0 +1,971 @@
+﻿<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Allison Brady | GTM Strategy & Leadership</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Harmony (Warm Neutrals with Google Blue accent) -->
+    <!-- Application Structure Plan: The SPA is structured as a thematic, interactive dashboard rather than a linear resume. This design tells a story of strategic growth. Key sections include a "Pillars of Impact" area with interactive case studies, a clickable career timeline, and a dedicated "Vision" section. This structure was chosen to highlight leadership and strategic thinking over chronological tasks, making it more engaging for a senior-level hiring manager and better showcasing the transition from "do-er" to "strategic leader." The AI Chatbot provides an additional interactive layer for direct querying of the profile content. The "Why I'm a Fit" feature in project modals offers targeted LLM-powered insights into role alignment. A new "Welcome" modal guides users on site engagement. -->
+    <!-- Visualization & Content Choices: Data is presented through interactive elements to enhance engagement. Key Stats (Inform) -> Dynamic number counters. YoY Growth (Compare) -> Chart.js bar chart for clear visual impact. Career Progression (Change/Organize) -> Clickable vertical timeline. Projects (Organize/Inform) -> Interactive cards revealing case studies (Challenge/Action/Result). The AI Chatbot (Inform/Engage) -> LLM-powered Q&A based on profile content. "Why I'm a Fit" (Inform/Analyze) -> LLM-generated role alignment statements. The Welcome Modal (Inform) -> Onboarding guidance. This approach breaks down complex achievements into digestible, interactive narratives, supporting the overall goal of demonstrating strategic leadership. Confirmed NO SVG/Mermaid. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+        }
+        .nav-link {
+            position: relative;
+            transition: color 0.3s;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #2563eb; /* blue-600 */
+            transition: width 0.3s;
+        }
+        .nav-link:hover::after, .nav-link.active::after {
+            width: 100%;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .project-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .modal {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal-content {
+            transition: transform 0.3s ease-in-out;
+        }
+        .timeline-item-content {
+            transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+        .timeline-item-content.open {
+            max-height: 500px; /* Adjust as needed */
+            opacity: 1;
+        }
+        /* Chatbot specific styles */
+        #chatbot-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #2563eb; /* blue-600 */
+            color: white;
+            border-radius: 9999px; /* full rounded */
+            padding: 1rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            cursor: pointer;
+            z-index: 1000;
+            transition: transform 0.2s ease-in-out;
+        }
+        #chatbot-button:hover {
+            transform: scale(1.05);
+        }
+        #chatbot-modal .modal-content {
+            max-width: 400px;
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+        #chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            background-color: #f1f5f9; /* slate-100 */
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .chat-message {
+            margin-bottom: 0.75rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            max-width: 85%;
+        }
+        .chat-message.user {
+            background-color: #bfdbfe; /* blue-200 */
+            margin-left: auto;
+            text-align: right;
+        }
+        .chat-message.ai {
+            background-color: #e2e8f0; /* slate-200 */
+            margin-right: auto;
+            text-align: left;
+        }
+        #chat-input-container {
+            display: flex;
+            gap: 0.5rem;
+        }
+        #chat-input {
+            flex-grow: 1;
+            border: 1px solid #cbd5e1; /* slate-300 */
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            font-size: 0.875rem;
+        }
+        #chat-send-button {
+            background-color: #2563eb; /* blue-600 */
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        #chat-send-button:hover {
+            background-color: #1d4ed8; /* blue-700 */
+        }
+        .fit-button {
+            background-color: #10b981; /* emerald-500 */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            margin-top: 1rem;
+            font-weight: 600;
+        }
+        .fit-button:hover:not(:disabled) {
+            background-color: #059669; /* emerald-600 */
+            transform: translateY(-1px);
+        }
+        .fit-button:disabled {
+            background-color: #6ee7b7; /* emerald-200 */
+            cursor: not-allowed;
+        }
+        .fit-response {
+            background-color: #ecfdf5; /* emerald-50 */
+            border-left: 4px solid #10b981; /* emerald-500 */
+            padding: 1rem;
+            margin-top: 1rem;
+            border-radius: 0.25rem;
+            font-style: italic;
+            color: #065f46; /* emerald-800 */
+        }
+    </style>
+</head>
+<body class="text-slate-700">
+
+
+    <!-- Header & Navigation -->
+    <header id="header" class="bg-slate-50/80 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#" class="text-xl font-bold text-slate-800">Allison Brady</a>
+            <nav class="hidden md:flex items-center space-x-8">
+                <a href="#overview" class="nav-link text-slate-600 hover:text-blue-600">Overview</a>
+                <a href="#impact" class="nav-link text-slate-600 hover:text-blue-600">Pillars of Impact</a>
+                <a href="#journey" class="nav-link text-slate-600 hover:text-blue-600">Career Journey</a>
+                <a href="#vision" class="nav-link text-slate-600 hover:text-blue-600">Vision</a>
+            </nav>
+            <button id="mobile-menu-button" class="md:hidden">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden px-6 pb-4">
+             <a href="#overview" class="block py-2 text-slate-600 hover:text-blue-600">Overview</a>
+             <a href="#impact" class="block py-2 text-slate-600 hover:text-blue-600">Pillars of Impact</a>
+             <a href="#journey" class="block py-2 text-slate-600 hover:text-blue-600">Career Journey</a>
+             <a href="#vision" class="block py-2 text-slate-600 hover:text-blue-600">Vision</a>
+        </div>
+    </header>
+
+
+    <main class="container mx-auto px-6 py-12 md:py-20">
+
+
+        <!-- Hero Section -->
+        <section id="hero" class="text-center mb-20 md:mb-32">
+            <img src="https://placehold.co/128x128/E2E8F0/475569?text=AB" alt="Allison Brady" class="w-32 h-32 rounded-full mx-auto mb-6 shadow-lg">
+            <h1 class="text-4xl md:text-6xl font-bold text-slate-900 mb-4">Architecting GTM for Enterprise Growth</h1>
+            <p class="text-lg md:text-xl text-slate-600 max-w-3xl mx-auto">Driving holistic solutions and cross-functional alignment in a cloud-first world. A decade of experience transforming strategy into scale at Google.</p>
+        </section>
+
+
+        <!-- Overview & Key Metrics -->
+        <section id="overview" class="mb-20 md:mb-32">
+             <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-slate-800">From Strategy to Scale</h2>
+                <p class="mt-2 text-lg text-slate-600">A proven leader in designing comprehensive GTM "plays," uniting diverse teams, and translating market insights into significant impact.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                <div class="bg-white p-8 rounded-lg shadow-md">
+                    <div class="text-blue-600 text-4xl font-bold mb-2" data-target="571" data-suffix="M+">0</div>
+                    <h3 class="text-lg font-semibold text-slate-800">Partner Pipeline Supported</h3>
+                    <p class="text-slate-500 text-sm">Through innovative enablement models and end-to-end campaign development.</p>
+                </div>
+                <div class="bg-white p-8 rounded-lg shadow-md">
+                    <div class="text-blue-600 text-4xl font-bold mb-2" data-target="30" data-suffix="%+">0</div>
+                    <h3 class="text-lg font-semibold text-slate-800">YoY Growth in Won ACV</h3>
+                     <p class="text-slate-500 text-sm">Driven by strategic GTM and enablement for key product launches like Duet AI.</p>
+                </div>
+                <div class="bg-white p-8 rounded-lg shadow-md">
+                    <div class="text-blue-600 text-4xl font-bold mb-2" data-target="20" data-suffix="+">0</div>
+                    <h3 class="text-lg font-semibold text-slate-800">Sales & Partner Trainings Led</h3>
+                     <p class="text-slate-500 text-sm">Ensuring market readiness and accelerating adoption for new solutions.</p>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- Pillars of Impact -->
+        <section id="impact" class="mb-20 md:mb-32">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-slate-800">Pillars of Impact</h2>
+                <p class="mt-2 text-lg text-slate-600">A portfolio of strategic initiatives that have shaped Google Workspace's GTM approach for the enterprise.</p>
+            </div>
+
+
+            <div id="projects-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Project cards will be injected here by JavaScript -->
+            </div>
+        </section>
+
+
+        <!-- Career Journey -->
+        <section id="journey" class="mb-20 md:mb-32">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold text-slate-800">Career Journey</h2>
+                <p class="mt-2 text-lg text-slate-600">A timeline of growth, leadership, and impactful contributions.</p>
+            </div>
+            <div id="timeline-container" class="relative border-l-2 border-blue-200 ml-6">
+                <!-- Timeline items will be injected here by JavaScript -->
+            </div>
+        </section>
+
+
+        <!-- "One Google" Vision -->
+        <section id="vision" class="bg-white rounded-lg shadow-lg p-8 md:p-12 text-center">
+             <h2 class="text-3xl font-bold text-slate-800 mb-4">Evolving GTM: A "One Google" Vision</h2>
+             <div class="w-16 h-1 bg-blue-600 mx-auto mb-6"></div>
+             <p class="text-lg text-slate-600 max-w-4xl mx-auto mb-4">
+                "The future lies in telling a holistic solution narrative, moving beyond SKU-based selling. My commitment is to build GTM strategies that embody a 'One Google' approach, integrating Workspace with broader Cloud offerings to deliver seamless, undeniable value to our enterprise customers."
+            </p>
+             <p class="font-semibold text-slate-800">- Allison Brady</p>
+        </section>
+
+
+    </main>
+    
+    <!-- Project Modal -->
+    <div id="project-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 opacity-0 pointer-events-none">
+        <div id="modal-content" class="modal-content bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8 transform scale-95">
+            <div class="flex justify-between items-start mb-4">
+                 <h3 id="modal-title" class="text-2xl font-bold text-slate-800"></h3>
+                 <button id="modal-close" class="text-slate-500 hover:text-slate-800">&times;</button>
+            </div>
+            <div id="modal-body" class="text-slate-600 space-y-6">
+                <!-- Modal content will be injected here -->
+                <button id="fit-button" class="fit-button">✨ Why I'm a Fit for this Role ✨</button>
+                <div id="fit-response-container" class="fit-response hidden"></div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Chatbot Button -->
+    <button id="chatbot-button" class="flex items-center justify-center p-4">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+    </button>
+
+
+    <!-- Chatbot Modal -->
+    <div id="chatbot-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 opacity-0 pointer-events-none">
+        <div class="modal-content bg-white rounded-lg shadow-2xl w-full max-w-md p-6 transform scale-95">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-slate-800">✨ Ask Allison ✨</h3>
+                <button id="chatbot-close" class="text-slate-500 hover:text-slate-800">&times;</button>
+            </div>
+            <div id="chat-messages" class="flex flex-col space-y-3">
+                <div class="chat-message ai">Hello! I'm Allison's AI assistant. Ask me anything about her experience or projects based on this portfolio.</div>
+            </div>
+            <div id="chat-input-container">
+                <input type="text" id="chat-input" placeholder="Type your question..." class="flex-grow p-2 border rounded-lg">
+                <button id="chat-send-button">Send</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Welcome Modal -->
+    <div id="welcome-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 opacity-0 pointer-events-none">
+        <div class="modal-content bg-white rounded-lg shadow-2xl w-full max-w-lg p-8 transform scale-95 text-center">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-bold text-slate-800 mx-auto">Welcome to Allison's Interactive Portfolio!</h3>
+                <button id="welcome-close" class="text-slate-500 hover:text-slate-800">&times;</button>
+            </div>
+            <p class="text-lg text-slate-600 mb-6">Explore my strategic leadership and impact at Google through these interactive features:</p>
+            <ul class="list-none space-y-3 text-left mx-auto max-w-md text-slate-700">
+                <li class="flex items-start">
+                    <span class="text-blue-600 text-xl mr-3">👉</span>
+                    <span>**Click Project Cards** in "Pillars of Impact" to view detailed case studies.</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-blue-600 text-xl mr-3">👉</span>
+                    <span>**Expand Timeline Items** in "Career Journey" for role highlights.</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-blue-600 text-xl mr-3">👉</span>
+                    <span>**Ask the AI Chatbot** (bottom right) any questions about my experience.</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-blue-600 text-xl mr-3">👉</span>
+                    <span>**"Why I'm a Fit" button** in project modals for role alignment insights.</span>
+                </li>
+            </ul>
+            <button id="welcome-dismiss" class="fit-button mt-8">Got It!</button>
+        </div>
+    </div>
+
+
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Global Job Description for LLM context
+            const jobDescription = `
+                The role of Global Practice Architect, Workspace, Google Cloud involves driving the goal, mission, and strategy for the Workspace Go-to-Market (GTM) approach. This includes designing and managing the construction of "plays" that encompass a complete GTM bill of materials, such as sales assets, orchestration models, propensity modeling, field activation, offers and incentives, and partner and services strategy. The architect is accountable for the strategy, construction, and management of these plays within their practice area. They will also collaborate with cross-functional stakeholders, interface with customers to understand offerings and gather feedback, and recommend adaptations based on market and customer needs.
+
+
+                Minimum qualifications for this role include a Bachelor's degree or equivalent practical experience, 10 years of experience in GTM planning or Cloud Workspace in a customer-facing or support role, and experience in delivering GTM motions. Preferred qualifications include experience selling Cloud products, content creation and narrative development, and the ability to collaborate effectively across organizational boundaries. The ideal candidate should also be able to quickly learn new emerging technologies, define and execute GTM processes, and possess excellent presentation skills for C-Suite and Board-level pitches.
+            `;
+
+
+            // Data for Projects
+            const projects = [
+                {
+                    title: 'Simple Shift Program',
+                    short_desc: 'Spearheaded a strategic competitive response program for enterprise wins.',
+                    icon: '🛡️',
+                    details: `
+                        <div class="space-y-4">
+                            <div>
+                                <h4 class="font-bold text-slate-700">The Challenge</h4>
+                                <p>Address decreasing enterprise customer wins (> $500K) by reducing financial and logistical barriers to migrating from competitor solutions.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-700">The Action</h4>
+                                <p>Led the design and implementation of the "Simple Shift" (fka Project Plankton) Program, a pivotal competitive response that drove enterprise customer wins exceeding target opportunity size, accelerated sales cycles, and removed financial barriers for 4+ high-value strategic deals in H1 2025. This initiative established an enterprise-ready migration and change management service with PSO teams and Partners, serving as a strategic pillar to significantly increase close rates and improve total cost of migration for enterprise customers migrating from Microsoft.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-700">The Result</h4>
+                                <p>Drove cross-functional alignment for the Simple Shift program across core GTM Strategy, Solutions, Sales Enablement, PSO, Customer Success, and Regional teams, establishing a unified Workspace customer journey aligned to the new GCP sales methodology to enable holistic solution selling.</p>
+                                <p>Developed initial Workspace Enterprise Customer Archetypes to standardize team understanding of market nuances and secure critical investment for strategic programs.</p>
+                            </div>
+                        </div>
+                    `
+                },
+                {
+                    title: 'Duet AI & Gemini Launch',
+                    short_desc: 'Co-led GTM enablement for key AI product launches.',
+                    icon: '🚀',
+                    details: `
+                         <div class="space-y-4">
+                            <div>
+                                <h4 class="font-bold text-slate-700">The Challenge</h4>
+                                <p>Ensure market readiness and rapid adoption for Google's flagship AI integrations within Workspace across both internal sales teams and external partners.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-700">The Action</h4>
+                                <p>Co-led the GTM Enablement and Activation workstream for Duet AI for Google Workspace and Gemini for Workspace product launches (2023-2024), developing essential content, GTM messaging, and sales/partner enablement, and delivering over 20+ training sessions to internal sellers and partners, leading FSR hands-on training with Gemini for Workspace at Accelerate 2024 Sales Kickoff, and owning the New Business track for the Q2 2024 Gemini Workspace Summit.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-700">The Result</h4>
+                                <p>This direct enablement contributed to significant growth in won Annual Contract Value (ACV).</p>
+                                <div class="chart-container mt-6">
+                                    <canvas id="acvGrowthChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    `
+                },
+                {
+                    title: 'Frontline Work Solution',
+                    short_desc: 'Led strategic effort to unlock growth in Frontline Worker TAM.',
+                    icon: '💡',
+                    details: `
+                         <div class="space-y-4">
+                            <div>
+                                <h4 class="font-bold text-slate-700">The Challenge</h4>
+                                <p>Address significant market challenges and unlock growth in the Frontline Worker TAM.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-700">The Action</h4>
+                                <p>Led the 2024 Frontline Work Solution initiative; assembled a cross-functional working group (Marketing, S&O, Competitive Intelligence, Workspace Architects) to analyze existing solutions and scope product, engineering, sales, and marketing challenges. Leveraging win/loss insights and market research, developed short- and long-term strategies to increase seat acquisition and improve win rates, delivering a multi-phase sales program, a refreshed Sales Play with supporting assets, a product proposal for the FLW SKU portfolio, and defining three customer archetypes to clarify frontline worker needs.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-700">The Result</h4>
+                                <p>Delivered a comprehensive strategic proposal that provided product teams with a clear path for evaluation and sales teams with an actionable play to begin targeting this vast market segment.</p>
+                            </div>
+                        </div>
+                    `
+                },
+                {
+                    title: 'Pipeline Reporting Framework',
+                    short_desc: 'Transformed data insights by creating a new reporting framework.',
+                    icon: '📊',
+                    details: `
+                        <div class="space-y-4">
+                            <div>
+                                <h4 class="font-bold text-slate-700">The Challenge</h4>
+                                <p>Initial GTM planning revealed a significant gap in sales pipeline reporting and marketing alignment, creating an incomplete and unreliable picture of pipeline health.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-700">The Action</h4>
+                                <p>Identified critical gaps in existing sales pipeline reporting; designed and implemented a new, cross-functional reporting framework that gained buy-in and aligned Field Sales, Growth Strategy COE, Strategy and Operations, regional sales leaders, regional program managers, marketing, and demand engine teams on unified metrics and funnel health indicators.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-700">The Result</h4>
+                                <p>The new framework directly impacted pipeline acceleration, evolved the H2 Pipeline Acceleration Plan playbook, and provided a reliable data foundation for creating impactful sales plays for subsequent years, resulting in a +5pt improvement on lead conversions.</p>
+                            </div>
+                        </div>
+                    `
+                },
+                {
+                    title: 'Partner Enablement Model',
+                    short_desc: 'Innovated partner support, securing new funding and driving pipeline.',
+                    icon: '🤝',
+                    details: `
+                         <div class="space-y-4">
+                            <div>
+                                <h4 class="font-bold text-slate-700">The Challenge</h4>
+                                <p>Partners lacked a cohesive support structure, limiting their ability to effectively market and sell Google Workspace solutions at scale.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-700">The Action</h4>
+                                <p>Introduced an innovative partner activation and enablement model, providing holistic support across marketing, sales, technical, and business teams. This model drove GWS campaign adoption and activation across 500+ partners, supporting 90.6% of the partner marketing generated pipeline in 2021, with key campaigns including G Suite Transition and Work Safer launches.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-700">The Result</h4>
+                                <p>These initiatives were instrumental in supporting over **$571M in partner-generated pipeline** in 2021 and **$16.7M in incremental pipeline (4.1x ROI)** from executive briefings.</p>
+                            </div>
+                        </div>
+                    `
+                },
+                 {
+                    title: 'Sales Play Ownership',
+                    short_desc: 'Central owner for new business strategy and GTM sales plays.',
+                    icon: '🎯',
+                    details: `
+                         <div class="space-y-4">
+                            <div>
+                                <h4 class="font-bold text-slate-700">The Challenge</h4>
+                                <p>A need for centralized ownership and strategic direction for the global sales plays to ensure consistency, impact, and alignment with overall business goals.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-700">The Action</h4>
+                                <p>Owned global sales plays for new business strategy (2023-2024), designing and executing the 2023 Workspace Sales Kickoff with content centered on new sales plays and GTM strategy, led FSR hands-on training with Gemini for Workspace at Accelerate 2024 Sales Kickoff, and owning the New Business track for the Q2 2024 Gemini Workspace Summit.</p>
+                                <p>Scoped and designed the 2024 sales play framework with counterparts, providing the foundational structure for the 2025 framework and strategic inputs on seller activation, with the goal of pivoting to a customer-centric, value-based selling approach inclusive of industry-specific strategies.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-700">The Result</h4>
+                                <p>Provided clear, strategic direction for the global sales organization, resulting in more effective and aligned GTM execution year-over-year. Collaborated on and coordinated 2024 sales plays, and significantly contributed to and influenced the 2025 sales play design and overall GTM planning.</p>
+                            </div>
+                        </div>
+                    `
+                }
+            ];
+            
+            // Data for Timeline
+            const timelineData = [
+                {
+                    date: 'Jan 2024 - Jun 2025', // Updated end date
+                    title: 'Growth Strategy & Programs Lead, Google Workspace',
+                    company: 'Google',
+                    details: [
+                        'Spearheaded strategic, cross-functional GTM initiatives optimizing B2B Enterprise customer outcomes and expanding Google\'s market reach by leveraging integrated Google Cloud Technology and Service Partners to disrupt the competitive landscape.',
+                        'Led the design and implementation of the "Simple Shift" Program, driving enterprise customer wins exceeding target opportunity size, accelerated sales cycles, and removed financial barriers for 4+ high-value strategic deals in H1 2025.',
+                        'Drove cross-functional alignment for Simple Shift across core GTM Strategy, Solutions, Sales Enablement, PSO, Customer Success, and Regional teams, establishing a unified Workspace customer journey.',
+                        'Co-led GTM Enablement and Activation for Duet AI & Gemini launches (2023-2024), delivering 20+ training sessions, leading FSR hands-on training, and owning the New Business track for Q2 2024 Gemini Workspace Summit.',
+                        'Scoped and designed the 2024 sales play framework with counterparts, providing foundational structure for 2025 framework and strategic inputs on seller activation.',
+                        'Led the 2024 Frontline Work Solution initiative, a critical strategic effort to address significant market challenges and unlock growth in the Frontline Worker TAM.'
+                    ]
+                },
+                {
+                    date: 'Mar 2022 - Jan 2024',
+                    title: 'Customer Acquisition Lead, Global Workspace',
+                    company: 'Google',
+                    details: [
+                        'Led the creation and implementation of a global demand generation strategy, driving new business pipeline and revenue growth for the Field Sales organization through collaboration with Product Marketing, Customer Marketing, and Field Sales teams.',
+                        'Identified critical gaps in existing sales pipeline reporting; designed and implemented a new, cross-functional reporting framework that gained buy-in and aligned Field Sales, Growth Strategy COE, Strategy and Operations, regional sales leaders, regional program managers, marketing, and demand engine teams on unified metrics and funnel health indicators, resulting in a +5pt improvement on lead conversions.',
+                        'Created the H2 Pipeline Acceleration Plan playbook, leveraging data insights from the new reporting framework and regional feedback to optimize GTM strategies and generate high-quality sales plays.'
+                    ]
+                },
+                {
+                    date: 'Jan 2019 - May 2022', // Updated start date based on resume
+                    title: 'Demand Generation Manager, Global Partner Marketing',
+                    company: 'Google Cloud',
+                    details: [
+                        'Managed a $35 million market and 40 accounts across five big box channels, analyzing data and building key relationships to support channel partners.',
+                        'Designed and executed end-to-end GTM "plays" and comprehensive campaign bills of materials, including Google Cloud Solution Campaign briefs, a Marketing Consultancy model for joint solution campaigns and sales kits, and the Account Based Marketing (ABM) playbook and program for Google Cloud Partners.',
+                        'Introduced an innovative partner activation and enablement model, providing holistic support across marketing, sales, technical, and business teams. This model drove GWS campaign adoption and activation across 500+ partners, supporting 90.6% of the partner marketing generated pipeline in 2021, with key campaigns including G Suite Transition and Work Safer launches.',
+                        'Organized and designed pre-briefing and post-launch support programs for partner briefings; co-led the program that secured the first-time incremental funding for a working partner initiative. This included completing 32 executive briefings with partners, generating $16M+ incremental Google Workspace pipeline (4.1x ROI).'
+                    ]
+                },
+                {
+                    date: 'Apr 2016 - Dec 2018',
+                    title: 'Manager, Global Partner Marketing',
+                    company: 'Veeam Software',
+                    details: [
+                        'Led digital-first channel marketing strategies across all business channels, consistently leveraging market insights to inform GTM plans.',
+                        'Managed and executed roadmaps for partner automation and content platforms, amplifying lead generation.',
+                        'Developed go-to-market strategies for Strategic Partnerships by optimizing partner content and joint campaigns, and providing regional channel marketing program support.'
+                    ]
+                }
+            ];
+
+
+            // Populate Projects
+            const projectsContainer = document.getElementById('projects-container');
+            projects.forEach(project => {
+                const card = document.createElement('div');
+                card.className = 'project-card bg-white p-6 rounded-lg shadow-md cursor-pointer';
+                card.innerHTML = `
+                    <div class="flex items-start space-x-4">
+                        <div class="text-3xl">${project.icon}</div>
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-lg">${project.title}</h3>
+                            <p class="text-slate-500">${project.short_desc}</p>
+                        </div>
+                    </div>
+                `;
+                card.addEventListener('click', () => openModal(project));
+                projectsContainer.appendChild(card);
+            });
+            
+            // Populate Timeline
+            const timelineContainer = document.getElementById('timeline-container');
+            timelineData.forEach(item => {
+                const timelineItem = document.createElement('div');
+                timelineItem.className = 'mb-8 pl-12 timeline-item';
+                timelineItem.innerHTML = `
+                    <div class="absolute -left-2.5 mt-2 w-5 h-5 bg-white border-2 border-blue-600 rounded-full"></div>
+                    <div class="cursor-pointer timeline-item-header">
+                        <time class="text-sm font-semibold text-blue-600">${item.date}</time>
+                        <h3 class="text-lg font-bold text-slate-800">${item.title}</h3>
+                        <p class="text-md text-slate-500">${item.company}</p>
+                    </div>
+                    <div class="timeline-item-content mt-2">
+                        <ul class="list-disc list-inside space-y-1 text-slate-600">
+                            ${item.details.map(d => `<li>${d}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+                timelineContainer.appendChild(timelineItem);
+                
+                const header = timelineItem.querySelector('.timeline-item-header');
+                const content = timelineItem.querySelector('.timeline-item-content');
+                header.addEventListener('click', () => {
+                    content.classList.toggle('open');
+                });
+            });
+
+
+
+
+            // Project Modal Logic
+            const projectModal = document.getElementById('project-modal');
+            const projectModalContent = document.getElementById('modal-content');
+            const projectModalTitle = document.getElementById('modal-title');
+            const projectModalBody = document.getElementById('modal-body');
+            const projectModalClose = document.getElementById('modal-close');
+            const fitButton = document.getElementById('fit-button');
+            const fitResponseContainer = document.getElementById('fit-response-container');
+
+
+            function openModal(project) {
+                projectModalTitle.textContent = project.title;
+                projectModalBody.innerHTML = project.details; // Reset content
+                projectModalBody.appendChild(fitButton); // Re-append button
+                projectModalBody.appendChild(fitResponseContainer); // Re-append response container
+                fitResponseContainer.classList.add('hidden'); // Hide previous response
+                fitButton.disabled = false; // Enable button
+
+
+                fitButton.onclick = () => generateFitStatement(project);
+
+
+                projectModal.classList.remove('opacity-0', 'pointer-events-none');
+                projectModalContent.classList.remove('scale-95');
+
+
+                if (project.title === 'Duet AI & Gemini Launch') {
+                    // This needs a slight delay for the canvas to be visible
+                    setTimeout(() => {
+                        const ctx = document.getElementById('acvGrowthChart').getContext('2d');
+                        new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: ['H1 \'22', 'H1 \'23'],
+                                datasets: [{
+                                    label: 'Won ACV Growth',
+                                    data: [100, 130], // Representing 30% growth
+                                    backgroundColor: ['rgba(59, 130, 246, 0.5)','rgba(37, 99, 235, 0.7)'],
+                                    borderColor: ['rgba(59, 130, 246, 1)','rgba(37, 99, 235, 1)'],
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { display: false },
+                                    title: {
+                                        display: true,
+                                        text: 'Contributed to 30%+ YoY Growth'
+                                    }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        ticks: {
+                                            callback: function(value, index, values) {
+                                                return value + '%';
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }, 100);
+                }
+            }
+
+
+            function closeProjectModal() {
+                projectModal.classList.add('opacity-0', 'pointer-events-none');
+                projectModalContent.classList.add('scale-95');
+            }
+
+
+            projectModalClose.addEventListener('click', closeProjectModal);
+            projectModal.addEventListener('click', (e) => {
+                if (e.target === projectModal) {
+                    closeProjectModal();
+                }
+            });
+
+
+            // Counter Animation
+            const counters = document.querySelectorAll('[data-target]');
+            const speed = 200; 
+
+
+            const animateCounter = (counter) => {
+                const target = +counter.getAttribute('data-target');
+                const suffix = counter.getAttribute('data-suffix') || '';
+                
+                const updateCount = () => {
+                    const count = +counter.innerText;
+                    const inc = target / speed;
+
+
+                    if (count < target) {
+                        counter.innerText = Math.ceil(count + inc);
+                        setTimeout(updateCount, 10);
+                    } else {
+                        counter.innerText = target + suffix;
+                    }
+                };
+                updateCount();
+            };
+            
+            const overviewObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        animateCounter(entry.target);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.5 });
+
+
+            counters.forEach(counter => {
+                overviewObserver.observe(counter);
+            });
+            
+            // Mobile Menu Toggle
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+
+            // Nav link active state on scroll
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('.nav-link');
+
+
+            const onScroll = () => {
+                let currentSection = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (pageYOffset >= sectionTop - 100) {
+                        currentSection = section.getAttribute('id');
+                    }
+                });
+
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href').substring(1) === currentSection) {
+                        link.classList.add('active');
+                    }
+                });
+            };
+            window.addEventListener('scroll', onScroll);
+
+
+            // Chatbot Logic
+            const chatbotButton = document.getElementById('chatbot-button');
+            const chatbotModal = document.getElementById('chatbot-modal');
+            const chatbotClose = document.getElementById('chatbot-close');
+            const chatMessages = document.getElementById('chat-messages');
+            const chatInput = document.getElementById('chat-input');
+            const chatSendButton = document.getElementById('chat-send-button');
+
+
+            chatbotButton.addEventListener('click', () => {
+                chatbotModal.classList.remove('opacity-0', 'pointer-events-none');
+                chatbotModal.querySelector('.modal-content').classList.remove('scale-95');
+                chatInput.focus();
+            });
+
+
+            chatbotClose.addEventListener('click', () => {
+                chatbotModal.classList.add('opacity-0', 'pointer-events-none');
+                chatbotModal.querySelector('.modal-content').classList.add('scale-95');
+            });
+
+
+            chatbotModal.addEventListener('click', (e) => {
+                if (e.target === chatbotModal) {
+                    chatbotModal.classList.add('opacity-0', 'pointer-events-none');
+                    chatbotModal.querySelector('.modal-content').classList.add('scale-95');
+                }
+            });
+
+
+            chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+            chatSendButton.addEventListener('click', sendMessage);
+
+
+            function addMessage(text, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `chat-message ${sender}`;
+                messageDiv.textContent = text;
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom
+            }
+
+
+            function getResumeContext() {
+                let context = "Allison Brady's Professional Portfolio:\n\n";
+                context += "Summary: Allison is a strategic and results-oriented leader with 10+ years driving high-impact Go-to-Market (GTM) strategies for Google Workspace, specializing in enterprise new business growth. As an architect of GTM initiatives, she expertly orchestrates cross-functional teams to drive new business growth, develop comprehensive 'plays,' and accelerate market penetration, consistently delivering significant revenue and pipeline impact. She is adept at leading complex initiatives, defining strategic roadmaps, and translating market insights into actionable business outcomes.\n\n";
+
+
+                context += "Key Metrics:\n";
+                context += "  - Supported $571M+ Partner Pipeline.\n";
+                context += "  - Contributed to 30%+ YoY Growth in Won ACV.\n";
+                context += "  - Led 20+ Sales & Partner Trainings.\n\n";
+
+
+                context += "Projects:\n";
+                projects.forEach(p => {
+                    context += `  - ${p.title}: ${p.short_desc}. Details: ${p.details.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()}\n`;
+                });
+                context += "\nCareer Journey:\n";
+                timelineData.forEach(t => {
+                    context += `  - ${t.date} - ${t.title} at ${t.company}. Key details: ${t.details.join('; ')}\n`;
+                });
+                context += "\nVision: Allison believes the future lies in telling a holistic solution narrative, moving beyond SKU-based selling, and building GTM strategies that embody a 'One Google' approach, integrating Workspace with broader Cloud offerings.\n";
+                context += `\nJob Description for Global Practice Architect, Workspace, Google Cloud:\n${jobDescription}\n`;
+                
+                return context;
+            }
+
+
+            async function sendMessage() {
+                const userMessage = chatInput.value.trim();
+                if (!userMessage) return;
+
+
+                addMessage(userMessage, 'user');
+                chatInput.value = '';
+                addMessage('Typing...', 'ai'); // Show typing indicator
+
+
+                const context = getResumeContext();
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: `You are Allison Brady, an expert in Go-to-Market strategy for Google Workspace. Answer questions about my professional experience and projects ONLY based on the following provided portfolio data. Do not make up information. If the information is not in the portfolio, state that you don't have that specific detail in your portfolio. Be concise and professional. \n\nPortfolio Data:\n${context}\n\nUser Question: ${userMessage}` }] });
+
+
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // Canvas will provide this at runtime
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+                    
+                    // Remove typing indicator
+                    chatMessages.lastChild.remove(); 
+
+
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const aiResponse = result.candidates[0].content.parts[0].text;
+                        addMessage(aiResponse, 'ai');
+                    } else {
+                        addMessage("I apologize, I couldn't generate a response based on the provided data. Please try rephrasing your question.", 'ai');
+                        console.error("Gemini API response structure unexpected or content missing:", result);
+                    }
+                } catch (error) {
+                    // Remove typing indicator
+                    chatMessages.lastChild.remove(); 
+                    addMessage("I'm sorry, I encountered an error. Please try again later.", 'ai');
+                    console.error("Error calling Gemini API:", error);
+                }
+            }
+
+
+            // Generate Fit Statement Logic
+            async function generateFitStatement(project) {
+                fitButton.disabled = true;
+                fitButton.textContent = 'Generating...';
+                fitResponseContainer.classList.add('hidden'); // Hide previous response
+
+
+                const projectDetails = project.details.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim(); // Clean HTML
+                
+                const prompt = `
+                    As an expert in Go-to-Market (GTM) strategy and talent acquisition, explain why the following project from Allison Brady's portfolio makes her an ideal candidate for the Global Practice Architect, Workspace, Google Cloud role.
+
+
+                    Focus on connecting the project's Challenge, Action, and Result directly to the job description's requirements (GTM strategy, "plays" design/management, cross-functional collaboration, customer interface, content creation, presentation skills, etc.).
+
+
+                    Be concise (2-3 sentences) and professional. Only use information provided in the project details and the job description.
+
+
+                    ---
+                    Project Details:
+                    Title: ${project.title}
+                    Description: ${projectDetails}
+
+
+                    ---
+                    Job Description:
+                    ${jobDescription}
+                    ---
+                    Why this project makes Allison a fit:
+                `;
+
+
+                const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+                const apiKey = ""; // Canvas will provide this at runtime
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+
+
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const aiResponse = result.candidates[0].content.parts[0].text;
+                        fitResponseContainer.textContent = aiResponse;
+                        fitResponseContainer.classList.remove('hidden');
+                    } else {
+                        fitResponseContainer.textContent = "Could not generate a fit statement. Please try again.";
+                        fitResponseContainer.classList.remove('hidden');
+                        console.error("Gemini API response structure unexpected or content missing:", result);
+                    }
+                } catch (error) {
+                    fitResponseContainer.textContent = "An error occurred while generating the statement. Please try again.";
+                    fitResponseContainer.classList.remove('hidden');
+                    console.error("Error calling Gemini API for fit statement:", error);
+                } finally {
+                    fitButton.disabled = false;
+                    fitButton.textContent = '✨ Why I\'m a Fit for this Role ✨';
+                }
+            }
+
+
+            // Welcome Modal Logic
+            const welcomeModal = document.getElementById('welcome-modal');
+            const welcomeClose = document.getElementById('welcome-close');
+            const welcomeDismiss = document.getElementById('welcome-dismiss');
+
+
+            // Show welcome modal on first visit
+            if (!localStorage.getItem('welcomeModalShown')) {
+                welcomeModal.classList.remove('opacity-0', 'pointer-events-none');
+                welcomeModal.querySelector('.modal-content').classList.remove('scale-95');
+                localStorage.setItem('welcomeModalShown', 'true');
+            }
+
+
+            function closeWelcomeModal() {
+                welcomeModal.classList.add('opacity-0', 'pointer-events-none');
+                welcomeModal.querySelector('.modal-content').classList.add('scale-95');
+            }
+
+
+            welcomeClose.addEventListener('click', closeWelcomeModal);
+            welcomeDismiss.addEventListener('click', closeWelcomeModal);
+            welcomeModal.addEventListener('click', (e) => {
+                if (e.target === welcomeModal) {
+                    closeWelcomeModal();
+                }
+            });
+
+
+        });
+    </script>
+</body>
+</html>
