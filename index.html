@@ -806,7 +806,7 @@
                 chatHistory.push({ role: "user", parts: [{ text: `You are Allison Brady, an expert in Go-to-Market strategy for Google Workspace. Answer questions about my professional experience and projects ONLY based on the following provided portfolio data. Do not make up information. If the information is not in the portfolio, state that you don't have that specific detail in your portfolio. Be concise and professional. \n\nPortfolio Data:\n${context}\n\nUser Question: ${userMessage}` }] });
 
                 const payload = { contents: chatHistory };
-                const apiKey = "AIzaSyANQS3KgKk9FG-_lG3IP7QsVmoXTDqFB6k"; // Canvas will provide this at runtime
+                const apiKey = "AIzaSyDigAwwkypWnDk3PzvpzsZquFkUbwIISLA"; // Canvas will provide this at runtime
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
                 try {
@@ -874,7 +874,7 @@
                 `;
 
                 const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
-                const apiKey = "AIzaSyANQS3KgKk9FG-_lG3IP7QsVmoXTDqFB6k"; // Canvas will provide this at runtime
+                const apiKey = "AIzaSyDigAwwkypWnDk3PzvpzsZquFkUbwIISLA"; // Canvas will provide this at runtime
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
                 try {
