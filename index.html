@@ -50,6 +50,33 @@
                 height: 350px;
             }
         }
+        /* MODAL STYLES ADJUSTED FOR MOBILE FRIENDLINESS */
+        .modal-content {
+            transition: transform 0.3s ease-in-out;
+            width: 90%; /* Ensure it takes up a good portion of screen */
+            max-width: 90vw; /* Max width relative to viewport */
+            box-sizing: border-box; /* Include padding in width calculation */
+        }
+        /* Specific adjustments for the chatbot modal */
+        #chatbot-modal .modal-content {
+            max-width: 360px; /* Slightly smaller max-width for chatbot specifically */
+            width: 90%; /* Ensure it scales down */
+            height: auto; /* Allow height to adjust */
+            max-height: 80vh; /* Max height relative to viewport */
+            display: flex;
+            flex-direction: column;
+        }
+        /* Project modal uses the default .modal-content with w-full max-w-2xl */
+        @media (min-width: 768px) { /* Re-apply larger max-width for desktop */
+            #project-modal .modal-content, #welcome-modal .modal-content {
+                max-width: 60rem; /* max-w-2xl equivalent */
+            }
+            #chatbot-modal .modal-content {
+                max-width: 400px; /* Original desktop max-width for chatbot */
+                height: 500px; /* Original desktop height for chatbot */
+            }
+        }
+
         .project-card {
             transition: transform 0.3s, box-shadow 0.3s;
         }
@@ -59,9 +86,6 @@
         }
         .modal {
             transition: opacity 0.3s ease-in-out;
-        }
-        .modal-content {
-            transition: transform 0.3s ease-in-out;
         }
         .timeline-item-content {
             transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out;
@@ -89,12 +113,6 @@
         }
         #chatbot-button:hover {
             transform: scale(1.05);
-        }
-        #chatbot-modal .modal-content {
-            max-width: 400px;
-            height: 500px;
-            display: flex;
-            flex-direction: column;
         }
         #chat-messages {
             flex-grow: 1;
